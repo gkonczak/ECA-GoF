@@ -106,7 +106,7 @@
 }
 
 
-eca.test <- function(x, dist = "norm", params = list(mean = 0, sd = 1),
+eca_gof.test <- function(x, dist = "norm", params = list(mean = 0, sd = 1),
                      delta = 1 / (2*length(x)), alpha = 0.05, n.sim = 1000) {
   
   DNAME <- deparse(substitute(x))
@@ -156,10 +156,13 @@ eca.test <- function(x, dist = "norm", params = list(mean = 0, sd = 1),
 
 # Examples ----
 
+
+## Expected: DO NOT REJECT H0
+
 # 1. H0: X ~ N(5, 2)
 x1 <- rnorm(10, mean = 5, sd = 2)
 
-eca.test(
+eca_gof.test(
   x     = x1,
   dist  = "norm",
   params = list(mean = 5, sd = 2),
@@ -170,7 +173,7 @@ eca.test(
 # 2. H0: X ~ Exp(rate = 3)
 x2 <- rexp(10, rate = 3)
 
-eca.test(
+eca_gof.test(
   x      = x2,
   dist   = "exp",
   params = list(rate = 3),
@@ -181,7 +184,7 @@ eca.test(
 # 3. H0: X ~ Unif(0, 10)
 x3 <- runif(10, min = 0, max = 10)
 
-eca.test(
+eca_gof.test(
   x      = x3,
   dist   = "unif",
   params = list(min = 0, max = 10),
@@ -193,7 +196,7 @@ eca.test(
 
 x4 <- rgamma(10, shape = 2, rate = 0.5)
 
-eca.test(
+eca_gof.test(
   x      = x4,
   dist   = "gamma",
   params = list(shape = 2, rate = 0.5),
@@ -204,7 +207,7 @@ eca.test(
 # 5. H0: X ~ LogNormal(meanlog = 1, sdlog = 0.5)
 x5 <- rlnorm(10, meanlog = 1, sdlog = 0.5)
 
-eca.test(
+eca_gof.test(
   x      = x5,
   dist   = "lnorm",
   params = list(meanlog = 1, sdlog = 0.5),
@@ -212,7 +215,40 @@ eca.test(
   n.sim  = 2000
 )
 
+## EXPECTED: REJECT H0
 
+# 6. H0: X ~ N(0, 1)
+x6 <- rt(10, df = 1)
+eca_gof.test(x6,
+             dist = "norm", 
+             params = list(mean = 0, sd = 1),
+             alpha = 0.05, 
+             n.sim = 2000
+)
+
+# 7. H0: X ~ N(1, 1)
+x7 <- rexp(10, rate = 1)
+eca_gof.test(x7,
+             dist   = "norm",
+             params = list(mean = 1, sd = 1),
+             alpha  = 0.05,
+             n.sim  = 2000
+)
+
+# 8. H0: X ~ N(0, 3)
+# Bimodal mixture vs. unimodal normal
+n <- 10
+component <- rbinom(n, 1, 0.5)
+x8 <- ifelse(component == 0,
+             rnorm(n, mean = -3, sd = 0.5),
+             rnorm(n, mean =  3, sd = 0.5))
+
+eca_gof.test(x8,
+             dist   = "norm",
+             params = list(mean = 0, sd = 3),
+             alpha  = 0.05,
+             n.sim  = 2000
+)
 
 
 
